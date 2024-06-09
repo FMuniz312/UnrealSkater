@@ -52,6 +52,24 @@ AUnrealSkaterCharacter::AUnrealSkaterCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	/*skateSkeletalMesh = CreateOptionalDefaultSubobject<USkeletalMeshComponent>(ACharacter::MeshComponentName);
+	if (skateSkeletalMesh)
+	{
+		skateSkeletalMesh->AlwaysLoadOnClient = true;
+		skateSkeletalMesh->AlwaysLoadOnServer = true;
+		skateSkeletalMesh->bOwnerNoSee = false;
+		skateSkeletalMesh->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPose;
+		skateSkeletalMesh->bCastDynamicShadow = true;
+		skateSkeletalMesh->bAffectDynamicIndirectLighting = true;
+		skateSkeletalMesh->PrimaryComponentTick.TickGroup = TG_PrePhysics;
+		skateSkeletalMesh->SetupAttachment(RootComponent);
+		static FName MeshCollisionProfileName(TEXT("SkateMesh"));
+		skateSkeletalMesh->SetCollisionProfileName(MeshCollisionProfileName);
+		skateSkeletalMesh->SetGenerateOverlapEvents(false);
+		skateSkeletalMesh->SetCanEverAffectNavigation(false);
+	}*/
+
 }
 
 void AUnrealSkaterCharacter::BeginPlay()
@@ -77,12 +95,12 @@ void AUnrealSkaterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 		
-		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		//// Jumping
+		//EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
+		//EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
-		// Moving
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AUnrealSkaterCharacter::Move);
+		//// Moving
+		//EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AUnrealSkaterCharacter::Move);
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AUnrealSkaterCharacter::Look);
