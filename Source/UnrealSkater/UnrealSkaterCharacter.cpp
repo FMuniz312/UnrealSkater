@@ -25,15 +25,15 @@ AUnrealSkaterCharacter::AUnrealSkaterCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
+
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; 
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); 
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 
 
 	GetCharacterMovement()->JumpZVelocity = 700.f;
@@ -71,7 +71,7 @@ void AUnrealSkaterCharacter::Tick(float DeltaTime)
 {
 	UdpateSkateRotationBasedOnGround(DeltaTime);
 	UpdateLerpedVelocityInput(DeltaTime);
-	if(m_pSkateSound && m_pSkateSound->IsActive())m_pSkateSound->AdjustVolume(0.1f, m_lerpedVelocityInput, EAudioFaderCurve::Linear);
+	if (m_pSkateSound && m_pSkateSound->IsActive())m_pSkateSound->AdjustVolume(0.1f, m_lerpedVelocityInput, EAudioFaderCurve::Linear);
 	UpdateMovement();
 	RunSpeedPostProcessEvaluation();
 	ForceCheckNotOnAir();
@@ -134,17 +134,17 @@ void AUnrealSkaterCharacter::UpdateLerpedVelocityInput(float DeltaTime)
 	float lastInputValueZClampled = UKismetMathLibrary::FClamp(m_lastInputValue.Y, -1.0, 1.0);
 	if (UKismetMathLibrary::NearlyEqual_FloatFloat(lastInputValueZClampled, m_lerpedVelocityInput, 0.000001))
 	{
-		m_lerpedVelocityInput = UKismetMathLibrary::FClamp(lastInputValueZClampled,0,1);
+		m_lerpedVelocityInput = UKismetMathLibrary::FClamp(lastInputValueZClampled, 0, 1);
 	}
-	else 
+	else
 	{
-		float interpValue = UKismetMathLibrary::FInterpTo(m_lerpedVelocityInput,lastInputValueZClampled, DeltaTime, 1.0);
+		float interpValue = UKismetMathLibrary::FInterpTo(m_lerpedVelocityInput, lastInputValueZClampled, DeltaTime, 1.0);
 
 		m_lerpedVelocityInput = UKismetMathLibrary::FClamp(interpValue, 0, 1);
 
 	}
-	 
-	
+
+
 }
 void AUnrealSkaterCharacter::UdpateSkateRotationBasedOnGround(float DeltaTime)
 {
@@ -181,7 +181,7 @@ void AUnrealSkaterCharacter::AdjustSkateSoundVolumeBaseOnSpeed()
 
 void AUnrealSkaterCharacter::UpdateMovement()
 {
-	m_zDirection = m_pSkateboardSkeletalMesh->GetForwardVector().Z;	
+	m_zDirection = m_pSkateboardSkeletalMesh->GetForwardVector().Z;
 
 	float mappedZDirection = UKismetMathLibrary::MapRangeClamped(m_zDirection, -1.0, 1.0, -0.7, 0.7);
 	double inputValueY = m_lerpedVelocityInput - mappedZDirection;
@@ -231,20 +231,22 @@ void AUnrealSkaterCharacter::RunSpeedPostProcessEvaluation()
 
 void AUnrealSkaterCharacter::HandleJumpSequence()
 {
-	Jump();
-
 	FGameplayTag JumpTag = FGameplayTag::RequestGameplayTag(FName("Character.Actions.Jumping"));
-	m_gameplayTagsContainer.AddTag(JumpTag);
 
-	if (m_pJumpMontage && GetMesh())
-	{
-		 
- 		PlayAnimMontage(m_pJumpMontage, 1.0f, FName("InitJump"));
+	if (!m_gameplayTagsContainer.HasTagExact(JumpTag)) {
+		Jump();
 
- 		FVector Impulse = m_pSkateboardSkeletalMesh->GetForwardVector() * 20.0f;
-		GetCharacterMovement()->AddImpulse(Impulse, true);
+
+		m_gameplayTagsContainer.AddTag(JumpTag);
+
+		if (m_pJumpMontage && GetMesh())
+		{
+			PlayAnimMontage(m_pJumpMontage, 1.0f, FName("InitJump"));
+
+			FVector Impulse = m_pSkateboardSkeletalMesh->GetForwardVector() * 20.0f;
+			GetCharacterMovement()->AddImpulse(Impulse, true);
+		}
 	}
-
 
 }
 
@@ -255,7 +257,7 @@ void AUnrealSkaterCharacter::ForceCheckNotOnAir()
 		FGameplayTag JumpingTag = FGameplayTag::RequestGameplayTag(FName("Character.Actions.Jumping"));
 
 		if (m_gameplayTagsContainer.HasTagExact(JumpingTag))
-		{			
+		{
 			m_gameplayTagsContainer.RemoveTag(JumpingTag);
 		}
 	}
