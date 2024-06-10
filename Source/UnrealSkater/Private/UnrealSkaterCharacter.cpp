@@ -148,32 +148,40 @@ void AUnrealSkaterCharacter::UpdateLerpedVelocityInput(float DeltaTime)
 }
 void AUnrealSkaterCharacter::UdpateSkateRotationBasedOnGround(float DeltaTime)
 {
+	// Get the locations of the front and back wheels on the skateboard
 	FVector frontWheelLocation = m_pSkateboardSkeletalMesh->GetSocketLocation(TEXT("SKT_FrontWheels"));
 	FVector backWheelLocation = m_pSkateboardSkeletalMesh->GetSocketLocation(TEXT("SKT_BackWheels"));
 
 	FVector frontHitLocation;
 	FVector backHitLocation;
 
+	// Perform raycasts from the wheels to the ground to determine the hit locations
 	RaycastWheelsToGround(frontWheelLocation, frontHitLocation);
 	RaycastWheelsToGround(backWheelLocation, backHitLocation);
 
-	FVector lookAtTarget = (frontHitLocation + backHitLocation) / 2;
+	// Calculate the target rotation based on the hit locations 
 	FRotator targetRotation = UKismetMathLibrary::FindLookAtRotation(backHitLocation, frontHitLocation);
 
+	// Interpolate between the current rotation and the target rotation
 	FRotator currentRotation = m_pSkateboardSkeletalMesh->GetComponentRotation();
 	FRotator interpRotation = UKismetMathLibrary::RInterpTo(currentRotation, targetRotation, DeltaTime, 10.0f);
 
+	// Maintain the current roll and yaw while updating the pitch
 	FRotator finalRotation;
 	finalRotation.Roll = currentRotation.Roll;
 	finalRotation.Pitch = interpRotation.Pitch;
 	finalRotation.Yaw = currentRotation.Yaw;
+
+	// Set the new rotation of the skateboard
 	m_pSkateboardSkeletalMesh->SetWorldRotation(finalRotation);
 
 }
 void AUnrealSkaterCharacter::AdjustSkateSoundVolumeBaseOnSpeed()
 {
+	// Check if the skate sound component is valid
 	if (IsValid(m_pSkateSound))
 	{
+		// Adjust the volume based on the lerped velocity input
 		float AdjustVolumeLevel = FMath::Clamp(m_lerpedVelocityInput, 0.0f, 1.0f);
 		m_pSkateSound->AdjustVolume(0.1f, AdjustVolumeLevel, EAudioFaderCurve::Linear);
 	}
@@ -181,13 +189,15 @@ void AUnrealSkaterCharacter::AdjustSkateSoundVolumeBaseOnSpeed()
 
 void AUnrealSkaterCharacter::UpdateMovement()
 {
+	// Get the forward vector's Z component of the skateboard
 	m_zDirection = m_pSkateboardSkeletalMesh->GetForwardVector().Z;
 
+	// Map the Z direction to a range and adjust the input values
 	float mappedZDirection = UKismetMathLibrary::MapRangeClamped(m_zDirection, -1.0, 1.0, -0.7, 0.7);
 	double inputValueY = m_lerpedVelocityInput - mappedZDirection;
-
 	double inputValueX = m_lastInputValue.X * 0.05;
 
+	// Add movement input based on the mapped values
 	AddMovementInput(m_pSkateboardSkeletalMesh->GetForwardVector(), inputValueY, false);
 	AddMovementInput(m_pSkateboardSkeletalMesh->GetRightVector(), inputValueX, false);
 
@@ -195,13 +205,15 @@ void AUnrealSkaterCharacter::UpdateMovement()
 
 void AUnrealSkaterCharacter::InitializeSkateSound()
 {
+	// Check if the skate sound asset is valid
 	if (m_pSkateSoundAsset)
 	{
+		// Create a 2D sound component for the skate sound
 		m_pSkateSound = UGameplayStatics::CreateSound2D(this, m_pSkateSoundAsset, 0.4f, 1.0f, 0.0f, nullptr, false, false);
 		if (m_pSkateSound)
 		{
+			// Play the skate sound and set the initial volume
 			m_pSkateSound->Play();
-
 			m_pSkateSound->AdjustVolume(0.1f, 0, EAudioFaderCurve::Linear);
 		}
 	}
@@ -209,6 +221,7 @@ void AUnrealSkaterCharacter::InitializeSkateSound()
 
 void AUnrealSkaterCharacter::SetupSpeedPostProcess()
 {
+	// Find all actors with the tag "SkaterPP" 
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsOfClassWithTag(GetWorld(), APostProcessVolume::StaticClass(), FName("SkaterPP"), FoundActors);
 
@@ -220,10 +233,13 @@ void AUnrealSkaterCharacter::SetupSpeedPostProcess()
 
 void AUnrealSkaterCharacter::RunSpeedPostProcessEvaluation()
 {
+	// Check if the speed post-process volume is valid
 	if (m_pSpeedPostProcess)
 	{
+		// Adjust the blend weight of the post-process volume based on the lerped velocity input
 		m_pSpeedPostProcess->BlendWeight = m_lerpedVelocityInput;
 
+		// Adjust the field of view of the follow camera based on the lerped velocity input
 		float InFieldOfView = UKismetMathLibrary::MapRangeClamped(m_lerpedVelocityInput, 0.5, 1.0, 90.0, 120.0);
 		m_pFollowCamera->SetFieldOfView(InFieldOfView);
 	}
@@ -231,18 +247,22 @@ void AUnrealSkaterCharacter::RunSpeedPostProcessEvaluation()
 
 void AUnrealSkaterCharacter::HandleJumpSequence()
 {
+	
 	FGameplayTag JumpTag = FGameplayTag::RequestGameplayTag(FName("Character.Actions.Jumping"));
 
+	// Check if the character is not already jumping
 	if (!m_gameplayTagsContainer.HasTagExact(JumpTag)) {
 		Jump();
 
-
+		// Add the jumping tag to the gameplay tags container
 		m_gameplayTagsContainer.AddTag(JumpTag);
 
+		// Play the jump animation montage if it is valid
 		if (m_pJumpMontage && GetMesh())
 		{
 			PlayAnimMontage(m_pJumpMontage, 1.0f, FName("InitJump"));
 
+			// Add an impulse to the character's movement in the forward direction of the skate
 			FVector Impulse = m_pSkateboardSkeletalMesh->GetForwardVector() * 20.0f;
 			GetCharacterMovement()->AddImpulse(Impulse, true);
 		}
@@ -252,10 +272,13 @@ void AUnrealSkaterCharacter::HandleJumpSequence()
 
 void AUnrealSkaterCharacter::ForceCheckNotOnAir()
 {
+	// Check if the character is not in the air
 	if (FindComponentByClass<UCharacterMovementComponent>() && !FindComponentByClass<UCharacterMovementComponent>()->IsFalling())
 	{
+	 
 		FGameplayTag JumpingTag = FGameplayTag::RequestGameplayTag(FName("Character.Actions.Jumping"));
 
+		// Remove the jumping tag if the character is not in the air
 		if (m_gameplayTagsContainer.HasTagExact(JumpingTag))
 		{
 			m_gameplayTagsContainer.RemoveTag(JumpingTag);
@@ -265,9 +288,12 @@ void AUnrealSkaterCharacter::ForceCheckNotOnAir()
 
 void AUnrealSkaterCharacter::RaycastWheelsToGround(FVector WheelLocation, FVector& OutHitLocation)
 {
+
+	// Define the start and end points for the raycast
 	FVector Start = WheelLocation + FVector(0.0f, 0.0f, 50.0f);
 	FVector End = WheelLocation + FVector(0.0f, 0.0f, -50.0f);
 
+	// Perform the raycast and store the result
 	FHitResult HitResult;
 	bool bHit = UKismetSystemLibrary::LineTraceSingle(
 		this,
@@ -284,6 +310,7 @@ void AUnrealSkaterCharacter::RaycastWheelsToGround(FVector WheelLocation, FVecto
 		5.0f
 	);
 
+	// Set the output hit location based on the raycast result
 	if (bHit)
 	{
 		OutHitLocation = HitResult.Location;

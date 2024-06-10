@@ -52,45 +52,71 @@ class AUnrealSkaterCharacter : public ACharacter
 	UInputAction* LookAction;
 
 protected:
-	  // Animation montage variable
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-    UAnimMontage* m_pJumpMontage;
+// Animation montage variable for handling jump animations
+UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+UAnimMontage* m_pJumpMontage;
 
-    // Gameplay tag container
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags")
-    FGameplayTagContainer m_gameplayTagsContainer;
+// Container for managing gameplay tags
+UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags")
+FGameplayTagContainer m_gameplayTagsContainer;
 
-	 UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-    float m_lerpedVelocityInput;
+// Lerp value for character velocity, read-only in Blueprints
+UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+float m_lerpedVelocityInput;
 
-    UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-    FVector2D m_lastInputValue;
+// Last input value for character movement, read-only in Blueprints
+UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+FVector2D m_lastInputValue;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	USoundBase* m_pSkateSoundAsset;
+// Sound asset for skate sound, editable and writable in Blueprints
+UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+USoundBase* m_pSkateSoundAsset;
 
-	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-    UAudioComponent* m_pSkateSound;
+// Audio component for skate sound, read-only in Blueprints
+UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+UAudioComponent* m_pSkateSound;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-    USkeletalMeshComponent* m_pSkateboardSkeletalMesh;
+// Skeletal mesh component for the skateboard, editable and writable in Blueprints
+UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+USkeletalMeshComponent* m_pSkateboardSkeletalMesh;
 
-    UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-    float m_zDirection;
+// Directional value for z-axis, read-only in Blueprints
+UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+float m_zDirection;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-    APostProcessVolume* m_pSpeedPostProcess;
+// Post-process volume for speed effects, editable and writable in Blueprints
+UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+APostProcessVolume* m_pSpeedPostProcess;
 
-    void UpdateLerpedVelocityInput(float DeltaTime);
-	void UdpateSkateRotationBasedOnGround(float DeltaTime);
-    void AdjustSkateSoundVolumeBaseOnSpeed();
-    void UpdateMovement();
-    void InitializeSkateSound();
-    void SetupSpeedPostProcess();
-	void RunSpeedPostProcessEvaluation();
-	void HandleJumpSequence();
-	void ForceCheckNotOnAir(); 
-	void RaycastWheelsToGround(FVector WheelLocation, FVector& OutHitLocation);
+// Updates lerped velocity input based on DeltaTime
+void UpdateLerpedVelocityInput(float DeltaTime);
+
+// Updates skate rotation based on ground, taking DeltaTime as input
+void UdpateSkateRotationBasedOnGround(float DeltaTime);
+
+// Adjusts the skate sound volume based on speed
+void AdjustSkateSoundVolumeBaseOnSpeed();
+
+// Main function to cache the character's intended movement
+void UpdateMovement();
+
+// Initializes the skateboarding sound
+void InitializeSkateSound();
+
+// Setup the speed post-process volume
+void SetupSpeedPostProcess();
+
+// Evaluates and run the speed post-process effects
+void RunSpeedPostProcessEvaluation();
+
+// Handles the jump sequence for the character
+void HandleJumpSequence();
+
+// Checks if the character is not in the air and enforce it
+void ForceCheckNotOnAir();
+
+// Performs a raycast from the wheels to the ground
+void RaycastWheelsToGround(FVector WheelLocation, FVector& OutHitLocation);
 
 public:
 	AUnrealSkaterCharacter();
