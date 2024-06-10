@@ -64,7 +64,6 @@ void AUnrealSkaterCharacter::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 	InitializeSkateSound();
-	SetupSpeedPostProcess();
 }
 
 void AUnrealSkaterCharacter::Tick(float DeltaTime)
@@ -100,7 +99,6 @@ void AUnrealSkaterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AUnrealSkaterCharacter::Move);
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AUnrealSkaterCharacter::Move);
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AUnrealSkaterCharacter::Look);
@@ -239,9 +237,9 @@ void AUnrealSkaterCharacter::HandleJumpSequence()
 	if (m_pJumpMontage && GetMesh())
 	{
 		 
- 		PlayAnimMontage(m_pJumpMontage, 1.0f, FName("InitJump"));
+ 		PlayAnimMontage(m_pJumpMontage, 1.0f, NAME_None);
 
- 		FVector Impulse = m_pSkateboardSkeletalMesh->GetForwardVector() * 20.0f;
+ 		FVector Impulse = m_pSkateboardSkeletalMesh->GetForwardVector() * 500.0f;
 		GetCharacterMovement()->AddImpulse(Impulse, true);
 	}
 

@@ -5,6 +5,13 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
+#include "Components/AudioComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Engine/PostProcessVolume.h"
+#include "GameplayTagContainer.h"
 #include "UnrealSkaterCharacter.generated.h"
 
 class USpringArmComponent;
@@ -22,11 +29,11 @@ class AUnrealSkaterCharacter : public ACharacter
 
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	USpringArmComponent* CameraBoom;
+	USpringArmComponent* m_pCameraBoom;
 
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* FollowCamera;
+	UCameraComponent* m_pFollowCamera;
 	
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -44,6 +51,47 @@ class AUnrealSkaterCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
+protected:
+	  // Animation montage variable
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+    UAnimMontage* m_pJumpMontage;
+
+    // Gameplay tag container
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags")
+    FGameplayTagContainer m_gameplayTagsContainer;
+
+	 UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+    float m_lerpedVelocityInput;
+
+    UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+    FVector2D m_lastInputValue;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	USoundBase* m_pSkateSoundAsset;
+
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+    UAudioComponent* m_pSkateSound;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+    USkeletalMeshComponent* m_pSkateboardSkeletalMesh;
+
+    UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+    float m_zDirection;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+    APostProcessVolume* m_pSpeedPostProcess;
+
+    void UpdateLerpedVelocityInput(float DeltaTime);
+	void UdpateSkateRotationBasedOnGround(float DeltaTime);
+    void AdjustSkateSoundVolumeBaseOnSpeed();
+    void UpdateMovement();
+    void InitializeSkateSound();
+    void SetupSpeedPostProcess();
+	void RunSpeedPostProcessEvaluation();
+	void HandleJumpSequence();
+	void ForceCheckNotOnAir(); 
+	void RaycastWheelsToGround(FVector WheelLocation, FVector& OutHitLocation);
+
 public:
 	AUnrealSkaterCharacter();
 	
@@ -56,20 +104,20 @@ protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 			
-
-protected:
+ 
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 	// To add mapping context
 	virtual void BeginPlay();
-
-	//USkeletalMeshComponent* skateSkeletalMesh;
+	virtual void Tick(float DeltaTime) override;
+	
+	 
 
 public:
 	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return m_pCameraBoom; }
 	/** Returns FollowCamera subobject **/
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return m_pFollowCamera; }
 };
 
